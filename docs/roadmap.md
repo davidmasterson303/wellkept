@@ -31,7 +31,7 @@
 > | dossier (dashboard + advisor) | 17 | 8/10, blind-ranked 1st of 4 from 4th | finished — "nine was asked for and not reached", recorded honestly |
 > | vehicle info | 5 | 7/10, plateau | finished, `50942e8` |
 > | logo / identity | 3 | 9→8 on a corrected cap constant, 9 of 9 met | finished, shipped `8938170`; drift §12 |
-> | iOS | 23 | 7/10 screens (peak 8 at round 22), 8 of 9 lines, 9/10 specimen | finished 11 Sep on `Continue: no` — B9 (viewfinder + haptic) needs `expo-camera`/`expo-haptics`, i.e. an EAS build; drift §6.10 |
+> | iOS | 36 | 7/10 screens (peak 8 at rounds 22 and 35), 8 of 9 lines, 9/10 specimen | finished 12 Sep on `Continue: no` — B9 (viewfinder + haptic) **built** in Expo Go, `f80e4ba`, ✅ from round 34; the open line is B6's provenance copy, which is `packages/core`'s; drift §6.16 |
 > | signed-in web (`/garage` `/settings` `/onboard`) | 4 | 8/10, 9 of 10 lines, garage blind-ranked 1st of 6 | finished 11 Sep on `Continue: no` — judged via `/dev/*` fixture routes, `1b8e6bc`; drift §13 |
 >
 > Then 8 Sep was a different critique — an **IA review**, not a visual one — which
@@ -268,7 +268,8 @@
 >
 > The mobile lane runs in order: the Service tab's critic loop → **B9** (the
 > viewfinder + capture haptic, `expo-camera` + `expo-haptics`, testable in
-> Expo Go) → **the store adapter** → the one device build above. The adapter
+> Expo Go — **done 12 Sep**, `f80e4ba`…`0326396`, drift §6.16) → **the store
+> adapter** → the one device build above. The adapter
 > is `expo-iap` **5.6.0**, and these are facts read from the unpacked package
 > today, not its README:
 >

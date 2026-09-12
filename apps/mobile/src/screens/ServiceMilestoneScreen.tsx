@@ -172,6 +172,16 @@ type State =
 const miles = new Intl.NumberFormat('en-US');
 
 /**
+ * A digit string, grouped for display: `'66000'` → `'66,000'`, `''` → `''`.
+ *
+ * Exported for the test, which types through the field and reads what it
+ * shows. Never parsed back — the field's value is the digits (see the gate).
+ */
+export function groupDigits(digits: string): string {
+  return digits === '' ? '' : miles.format(Number(digits));
+}
+
+/**
  * The numeral column: where this car stands against the interval.
  *
  * ⚠ The *position*, never the interval. "5,000 MI" in the value column of a
@@ -451,8 +461,10 @@ export function ServiceMilestoneScreen({ vehicleId, onSignOut }: Props) {
   if (state.schedule.length === 0) {
     return (
       <ScrollView contentContainerStyle={styles.body} {...rootScroll}>
+        {/* `rule={false}`: the pinned band above closes with the hairline. */}
         <EmptyState
           inset={false}
+          rule={false}
           headline="No schedule yet"
           body="This car has no structured service schedule yet, so nothing can be worked out from its mileage."
         />
@@ -512,10 +524,22 @@ export function ServiceMilestoneScreen({ vehicleId, onSignOut }: Props) {
             typed, and a person typing an odometer is not in doubt about the
             unit.
           */}
+          {/*
+            ── 12 Sep · the field reads 66,000, like every other reading ────
+
+            The critique's parking lot since round 30, and round 34's gap 3:
+            the one number on the surface printed without its separators was
+            the one being typed. Shown grouped, kept as digits — `reading`
+            holds what was typed with everything but digits removed, which is
+            what `confirm` has always parsed, and `groupDigits` is only the
+            display. A number pad appends at the end, so the caret has nowhere
+            surprising to land; deleting through a comma removes the digit
+            before it, because the comma was never in the value.
+          */}
           <Field
             label="Odometer"
-            value={reading}
-            onChangeText={setReading}
+            value={groupDigits(reading)}
+            onChangeText={(typed) => setReading(typed.replace(/[^0-9]/g, ''))}
             keyboardType="number-pad"
             returnKeyType="done"
             onSubmitEditing={() => void confirm()}
@@ -802,14 +826,18 @@ const styles = StyleSheet.create({
 
   /* ── R14 · the confirm band ────────────────────────────────────────────── */
   /*
-    B5: a top rule and the page's own surface. The table beneath opens with a
-    rule of its own, so this band closes on nothing — two hairlines a pixel
-    apart read as a seam, which is `Card`'s argument for a top rule only.
+    B5: the page's own surface. The table beneath opens with a rule of its
+    own, so this band closes on nothing — two hairlines a pixel apart read as
+    a seam, which is `Card`'s argument for a top rule only.
+
+    ⚠ 12 Sep · and no top rule of its own any more: the pinned band above
+    closes with one (`ServiceScreen`'s `scan`), and this is the first thing
+    under it. No top air of its own either — `PAGE_BODY`'s 20 under that rule
+    is the same distance the History side gives its search field, measured on
+    the frame (the old 16 on top of it put the question 40pt under the rule
+    against the field's 22).
   */
   confirm: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: border.panel,
-    paddingTop: space.lg,
     gap: space.sm,
   },
   /*
@@ -828,15 +856,20 @@ const styles = StyleSheet.create({
   confirmAction: { flexShrink: 0 },
 
   /* ── R33 · the confirmed reading, as a row of the table ────────────────── */
+  /*
+    ⚠ 12 Sep · no top rule, and no top air: it is the first row under the
+    pinned band, whose closing hairline is its top edge and whose body gives
+    it `PAGE_BODY`'s 20 (see `confirm`) — 16 more of its own would hang the
+    reading between the two rules with twice the air above it as below. The
+    group head beneath draws the rule that closes it.
+  */
   readingRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'space-between',
     gap: space.md,
-    minHeight: SPEC_ROW,
-    paddingVertical: space.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: border.panel,
+    minHeight: SPEC_ROW - space.lg,
+    paddingBottom: space.lg,
   },
   readingLabel: { ...type.monoLabel, color: text.muted },
   readingValue: { ...type.mono, fontSize: 15, lineHeight: 20, color: text.primary, ...TABULAR },

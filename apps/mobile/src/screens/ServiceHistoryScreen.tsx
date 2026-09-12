@@ -456,10 +456,17 @@ export function ServiceHistoryScreen({ vehicleId, onScan, onOpenVisit, onSignOut
           root's, not this segment's, and a segment mounted somewhere without
           it would need the door back.
         */
+        /*
+          `rule={false}`: the pinned band above closes with the hairline
+          (`ServiceScreen`). "On Plan", not "on Needs" — Needs is the Plan
+          tab's list, and read from this tab the word looked like the segment
+          beside it (round 34's Cut list; drift §6.15 had recorded it).
+        */
         <EmptyState
           inset={false}
+          rule={false}
           headline="Nothing recorded yet"
-          body="Scan an invoice, or mark something done on Needs, and it will appear here."
+          body="Scan an invoice, or mark something done on Plan, and it will appear here."
         />
       ) : (
         <>

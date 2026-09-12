@@ -999,6 +999,7 @@ function serviceScreen(onSignOut: () => void) {
         withCar(route, navigation, 'Service', (vehicleId) => (
           <ServiceScreen
             vehicleId={vehicleId}
+            vehicleTitle={route.params?.title}
             initialSegment={route.params?.segment}
             /*
               Scanning starts here and returns here. `useRefetchOnFocus` on
@@ -1109,14 +1110,22 @@ function advisorScreen(onSignOut: () => void) {
 function invoiceScreens(onSignOut: () => void) {
   return (
     <>
-      <Stack.Screen name="InvoiceScan" options={{ title: 'SCAN AN INVOICE' }}>
+      {/*
+        ── 12 Sep · one name for the act ─────────────────────────────────
+
+        SCAN INVOICE, as the Service root's primary and the hub's row say it
+        — the nav read SCAN AN INVOICE, and round 34's Cut list counted the
+        article: *"the act has one name."*
+      */}
+      <Stack.Screen name="InvoiceScan" options={{ title: 'SCAN INVOICE' }}>
         {({ route }) => (
           <InvoiceScanScreen
             vehicleId={route.params.vehicleId}
             /*
-              The seam. `pick-image.ts` is the only module that will
-              import expo-image-picker, so this screen stays free of native
-              imports and one file changes when the build lands.
+              The seam. `pick-image.ts` is the only module that imports
+              expo-image-picker, so this screen stays free of native imports
+              for the library path; the camera is the viewfinder's own
+              (`components/Viewfinder.tsx`).
             */
             pickImage={pickInvoiceImage}
             onSignOut={onSignOut}

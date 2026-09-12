@@ -1,6 +1,6 @@
 import { render, userEvent, waitFor } from '@testing-library/react-native';
 
-import { ServiceMilestoneScreen } from '../ServiceMilestoneScreen';
+import { ServiceMilestoneScreen, groupDigits } from '../ServiceMilestoneScreen';
 import { apiRequest } from '../../api/client';
 import { SERVICE_BASIS_LABELS } from '@tappet/core/service-provenance';
 import { status } from '../../theme';
@@ -523,5 +523,42 @@ describe('the spec table', () => {
 
     // B1: a value in the mono, with its unit — not "66,000 miles" in the sans.
     expect(await view.findByText('66,000 MI')).toBeTruthy();
+  });
+
+  it('shows the field’s reading grouped, and sends the digits', async () => {
+    /*
+      ── 12 Sep · round 34's gap 3 ──────────────────────────────────────────
+
+      "66000" under "Still around 66,000 miles?" was the one figure on the
+      surface printed without its separators. The field shows the grouped
+      form; what it holds and what `confirm` sends is the digits — the
+      separators are display, never value, so the PATCH cannot carry a comma.
+    */
+    const user = userEvent.setup();
+    respondWith([BELT], FULL);
+    const view = await render(<ServiceMilestoneScreen vehicleId="v1" onSignOut={jest.fn()} />);
+
+    const field = await view.findByLabelText('Odometer');
+    expect(field.props.value).toBe('66,000');
+
+    await user.clear(field);
+    await user.type(field, '72400');
+    expect(field.props.value).toBe('72,400');
+
+    await user.press(view.getByLabelText('That is right'));
+
+    await waitFor(() =>
+      expect(request).toHaveBeenCalledWith(
+        '/vehicles',
+        expect.objectContaining({ body: expect.objectContaining({ currentMileage: 72_400 }) })
+      )
+    );
+  });
+
+  it('groups digits for display and nothing else', () => {
+    expect(groupDigits('66000')).toBe('66,000');
+    expect(groupDigits('7')).toBe('7');
+    // Empty stays empty: a placeholder-shaped "0" would be a reading nobody took.
+    expect(groupDigits('')).toBe('');
   });
 });

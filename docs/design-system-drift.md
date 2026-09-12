@@ -1385,8 +1385,8 @@ is in `packages/core/health-claims.ts`, and the design fixture that had been
 storing the app's own stale sentence *as* the stored summary is fixed to hold
 a real one with the dates that make it stale.
 
-**B9 — owner photos are graded ✅; the viewfinder and the capture haptic are
-blocked on a build.** `PhotoGrade` lays the house grade over an owner's
+**B9 — owner photos are graded ✅; the viewfinder and the capture haptic
+~~are blocked on a build~~ — built 12 Sep, see §6.16.** `PhotoGrade` lays the house grade over an owner's
 photograph as four blended layers (lifted blacks, sodium→cyan split tone,
 vignette, the plate's own grain), which the new architecture composites
 natively — no image pipeline, no native module. ⚠ The layers must be
@@ -1399,6 +1399,15 @@ today the scan opens the system camera through `expo-image-picker`, which is
 the viewfinder iOS provides. Each is one EAS build (CLAUDE.md §9); logged here
 rather than built, the same way §3.23 logged the camera-first scan. Until
 then B9 grades 🟡 whatever the loop does.
+
+⚠ **Corrected 12 Sep — the paragraph above is history.** `expo-camera` and
+`expo-haptics` were installed on `main` in `0bdaf9f` and both are bundled in
+Expo Go, so the viewfinder needed no build to be *built* and run: it is
+`components/Viewfinder.tsx` (§6.16), graded ✅ on Expo Go in rounds 34–36,
+and the one device build (`docs/runbook-eas-device-build.md`) carries it
+natively the same as everything else. What a build still gates is only the
+old CrewChief dev client, which cannot load a bundle that imports
+`expo-camera` at all — and is not the runtime any more.
 
 ⚠ **The fixtures launch config carries a design photo.** `expo-mobile-fixtures`
 also sets `EXPO_PUBLIC_DESIGN_PHOTO_URL` to a file Metro serves from the
@@ -1415,7 +1424,7 @@ Vehicle plate runs under the status bar, so its top-right cut has nowhere to
 live — which corner, if any, the Vehicle plate cuts is one sentence from
 David.
 
-### 6.10 The loop stopped at round 23 — 8 of 9 lines ✅, B9 on a build, 11 Sep
+### 6.10 The loop stopped at round 23 — 8 of 9 lines ✅, B9 ~~on a build~~ (built 12 Sep, §6.16), 11 Sep
 
 Scores after the rebuild: 6 → 7 → 8 → 7. Round 23 marked **B2 ✅** (the cut
 measured present at native resolution, 24px legs at 45° — see
@@ -1424,6 +1433,10 @@ measured present at native resolution, 24px legs at 45° — see
 not another design round."* That frame needs `expo-camera` (§6.9). So the
 loop stops on the critic's own rule, one line short of the 9 David asked
 for, and the line it is short by is a build rather than a design.
+
+⚠ **Corrected 12 Sep:** it was not a build. The modules were installed on
+`main` the same morning (`0bdaf9f`) and Expo Go carries both; the viewfinder
+was built that afternoon and graded ✅ in round 34 (§6.16).
 
 ⚠ The 8 → 7 step is the critic's variance, not a regression: round 23's
 checklist is strictly better than round 22's (B2 moved 🟡 → ✅, nothing moved
@@ -2145,6 +2158,172 @@ B7."* Web's Service page is the one that has drifted from its own system
 - *The odometer field's formatting* ("66000" under "66,000 miles?"), the
   search placeholder's size, and the empty Due naming how a schedule is
   obtained — the critic's parking lot, unchanged.
+
+### 6.16 B9 is built — the viewfinder, rounds 34–36, 12 Sep
+
+The line §6.9 and §6.10 called *"on a build"* was not on one. `expo-camera`
+and `expo-haptics` landed on `main` in `0bdaf9f` that morning and both are
+bundled in Expo Go, so the frame the critic asked for in four consecutive
+rounds — *"hairline corner brackets, mono readout, CHOOSE FROM LIBRARY as
+the hairline secondary at its foot"* — was a JS change. `components/
+Viewfinder.tsx` is it, and `InvoiceScanScreen`'s idle frame is the
+viewfinder (`f80e4ba`). **Round 34 graded B9 ✅.** Scores 7 → 8 → 7 across
+rounds 34–36; the loop stopped on the critic's `Continue: no` — *"the
+surface has reached the brief."* Eight of nine lines ✅ with B3 not on this
+surface; the ninth (B6) is copy that lives in `packages/core`.
+
+⚠ **Shot on the iPhone 16 Plus, not the 16 Pro.** The simulator input tool's
+taps reached SpringBoard, Settings and system alerts on the Pro and never
+Expo Go's project surface there, before and after a reboot; on the Plus
+every tap landed. Same app, same fixtures, 1290×2796 instead of 1206×2622;
+the blind set normalises width. The Expo dev-tools button was switched off
+in Expo Go's dev menu before shooting (round 32's B7 🟡 was that chrome).
+
+**What the viewfinder is, and the four things it was careful about:**
+
+- The feed full-bleed under the header, four cyan hairline brackets (1pt,
+  24pt legs, inset by the page gutter), a readout row in the spec row's
+  grammar — PHOTOGRAPH THE INVOICE on the left, the camera's word on the
+  right — a CAPTURE primary with CHOOSE FROM LIBRARY beside it at one
+  height, and R49's caveat as one line at the foot. ⚠ The caveat stays
+  *before* the photograph, for the reason §6.15 gave: there is no review
+  step, lines file as they are read, and the critic's ask to move it to one
+  (rounds 31, 32, 34, 36) describes a screen that does not exist. What the
+  viewfinder took from the ask is the length — an explainer page became a
+  line.
+- **The brackets are cyan.** B7 gives cyan three jobs and a viewfinder's
+  frame is the focus of a capture; the critic's own picture of the screen
+  (`critique-32.md` §6) drew them cyan, and round 34 read them as *"focus"*
+  under B7. An off-white hairline would vanish on the white paper it frames;
+  `border.*` at 8–24% would vanish on everything. No text sits over the feed
+  — a live image has no contrast anybody can promise — so the readout is a
+  row on the graphite beneath, where `contrast.test.tsx` measures it.
+- **The readout prints only what the camera has said**: ASKING, CAMERA OFF
+  (sodium triangle, the Settings line, OPEN SETTINGS), STARTING, READY,
+  CAPTURING, CAMERA FAILED — and NO CAMERA, the simulator's word. ⚠ That one
+  is not read from the ready event: `CameraView.swift` dispatches
+  `onCameraReady` unconditionally once the props settle, so READY alone
+  would lie on the machine this is developed on. `getAvailableLensesAsync()`
+  reads `AVCaptureDevice`'s discovery session — empty on a simulator, never
+  on an iPhone — and is asked *inside* the ready handler, because the class
+  method answers `[]` when its native ref is unset and an effect racing the
+  mount could read that as "no camera" on a real phone. `Camera.
+  isAvailableAsync()` is web-only in 57 and throws on iOS; it is not the
+  check. With no lens the capture control stands down — `takePictureAsync`
+  returns a generated grey square there, and filing one against a car would
+  be a lie the upload cannot see — and the library is still on the frame.
+- **One firm haptic, at the press** (`Heavy`, before `takePictureAsync`),
+  counted by `InvoiceScanScreen.test.tsx`: the count fails on a second
+  impact anywhere on the path. The capture is the picker's `InvoiceFile` at
+  the picker's quality by construction — `INVOICE_QUALITY` moved out of
+  `pick-image.ts` into `media/invoice-image.ts`, read by both, and the guard
+  reads both call sites.
+
+**LEG-02 is asked at the door.** The sheet used to open when TAKE A PHOTO
+was pressed and hold the source so agreeing continued into the camera. The
+screen opens *on* the camera now, so the question is asked as it opens: the
+viewfinder is held (`live={false}` — nothing filmed, no permission alert
+stacked under the sheet) until it is answered, and agreeing arms it. The
+ordering the old comment argued for is kept exactly: consent before the
+camera points at anything. Declining stands the controls down — the frame
+stays, the note and "Change that" sit at its foot, no camera runs for
+nobody. Every camera route on the screen ("Take a photo", "Try another
+photo") lands on the viewfinder, never the system sheet; `pickImage`'s
+source narrows to `'library'`.
+
+⚠ **`Viewfinder.tsx` imports its two native modules directly**, and the
+seam `InvoiceScanScreen` kept for the picker does not extend to it: the
+seam existed because the dev client of 5 Aug predated the picker, and the
+same is true here — `ExpoCamera.js` requires its native module at import,
+so **the old CrewChief dev client cannot load a bundle containing this
+file.** Expo Go carries both modules, David's phone runs Expo Go, and the
+device build compiles them in. `jest.setup.js` stubs both the way it stubs
+the picker; `mobile-native-build-inputs.test.ts` lists both, the camera
+reusing the picker's `NSCameraUsageDescription` and the microphone
+deliberately *not* listed — `CameraView` is mounted in picture mode and the
+iOS module touches the audio device only when recording.
+
+**Round 34 — 7/10, B9 ✅, and three lines round 33 had passed marked
+partial** (B2 the unnamed root, B5 the pinned band's open edge, B6 the
+wrapped captions — all visible in round 33's frames, none raised then; the
+variance §6.10 recorded). Taken for round 35 (`292e03c`, `f10e5df`):
+
+- **The pinned band closes with a rule.** A hairline 12pt under SCAN
+  INVOICE, so the list passes under a rule the way it passes under the
+  collapsed title's — *"the search field is sliced in half in 03b."* The
+  rule that used to open each segment's first band (the odometer gate's,
+  the confirmed reading's, both empties') went with it, because two
+  hairlines with 20pt of nothing between them read as an empty band. ⚠ The
+  critic's other option — let the primary scroll with the list — is the
+  round-30 reading David has not ruled on (§6.15's list); the rule keeps
+  the decision open.
+- **The Service root names its car**, in the Advisor root's context line
+  (R52) and voice — mono caps, muted, pinned above the rail. Optional
+  because the route's `title` is; suppressed when pushed, where the back
+  label "‹ BMW M235I" already says it and a second copy 24pt beneath is the
+  two-names-on-one-screen `ScreenTitle` retired. ⚠ **The Plan root has the
+  same gap** and was not on this loop's surface; the one-liner is the same.
+- **The odometer field reads 66,000** and holds `66000`: `groupDigits` is
+  display, the value is digits, and `confirm` sends what it always parsed.
+- Cut: SCAN AN INVOICE → SCAN INVOICE on the nav title and the hub's row
+  (one name for the act); "mark something done on Needs" → "on Plan" in the
+  empty History (§6.15 had recorded it). Declined, with the reason: *"The
+  list below is worked out from this reading"* is the §10 statement that
+  the schedule is computed from an unconfirmed number, and its own test
+  holds it — asked for again in rounds 35 and 36, declined the same way.
+
+**Round 35 — 8/10, 8 ✅ / 1 🟡, `Continue: yes`** — *"one pass for the
+three named fixes would take it to 9; land them and stop."* One of the three
+was the implementer's and is landed (`0326396`): CHOOSE FROM LIBRARY takes
+the `outline` secondary beside CAPTURE at one height — the brief's own pair,
+the odometer gate's grammar. The other two are not the implementer's:
+
+- ⚠ **The Due row's caption (B6, the one open line).** *"Every 15,000 mi ·
+  Based on what you told us at sign-up"* orphans a word on every iPhone
+  width; the critic wants a mono token — `· SIGN-UP`, `· RECORDS`,
+  `· ESTIMATED`. The layout is already the caption's full width minus the
+  ADD word; a one-line caption needs shorter copy, and `SERVICE_BASIS_
+  LABELS` lives in `packages/core` precisely so both clients make one
+  claim. **Proposal for David/core:** a `SERVICE_BASIS_SHORT` beside the
+  sentences, same three meanings, for a row that has no room for a
+  sentence — web's `ServiceDueList` could take it too. Not written from a
+  worktree, which does not edit core.
+- *The filtered visit's total* — the critic re-raised §6.15's parking-lot
+  item under B6 (rounds 35 and 36): the head reads $678 of a $1,313
+  invoice while a search is active. Round 36 offers the second way out,
+  *"or drop the figure while a filter is active,"* which is the rule the
+  summary one band up already follows (round 32). The screen's docblock and
+  `ServiceHistoryScreen.test.tsx` hold the current reading; David's to
+  overturn.
+
+**Round 36 — 7/10, the same checklist, `Continue: no` — the loop stops.**
+No regression named for the 8 → 7 step (the critic's variance again), and
+its gap 2 reverses round 35's gap 2: the box it asked for beside CAPTURE is
+now the row to break up, with the library back to a mono caption beneath —
+the round-33 form. Neither is taken; the brief's own pair stands, and the
+reversal is the plateau signal. Gap 1's second half is the row-as-affordance
+declined three times in §6.15; its first half — ADD one step of ink quieter
+than the numerals — was round 33's change (`ghost` to `text.secondary`),
+graded ✅ then and 🟡 now. Recorded, not built. The sentence to carry: the
+remaining gaps *"will not move the score by a full point, and the surface
+has reached the brief."*
+
+**Parking lot, rounds 34–36 — for David:**
+
+- *The scan screen's tab bar* (rounds 34, 36): a viewfinder above GARAGE /
+  PLAN / ADVISOR reads as a tab child; the critic wants the act full-bleed
+  with the readout as its only chrome. Now that the viewfinder exists, it is
+  a navigation option (`tabBarStyle` per route) rather than a build.
+- *The pinned stack* (rounds 34–36): plate, model line, rail and primary
+  hold ~26% of the screen once scrolled; the critic would collapse the model
+  line and the primary with the title and return them on scroll-up. The
+  same decision as §6.15's — which of round 30's two readings holds.
+- *Due-empty's "one button"*: the brief's empty state ends in one, and
+  NO SCHEDULE YET offers no way forward. What the button does is David's.
+- *The group head's sentence* ("Drive belt and tensioner, inspect is 3,000
+  miles overdue" over a row that says the same): the critic would drop it
+  when a section has one overdue item; §6.15 kept it as the notification
+  body the two must agree on. Unchanged, for the same reason.
 
 ---
 
