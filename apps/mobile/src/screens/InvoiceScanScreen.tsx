@@ -467,11 +467,18 @@ export function InvoiceScanScreen({
             photo taken days ago — and the simulator has no camera at all, so
             a camera-only flow could never be exercised on the machine this is
             developed on. Beside the capture control at the same height, as
-            the critique placed it: the second way in, one step of ink down.
+            the critique placed it.
+
+            ⚠ `outline`, not `ghost` (round 35): a bare word beside a boxed
+            CAPTURE read as *"a half-built button row"*. The brief's own pair
+            — *"primary off-white fill … secondary off-white hairline"* — at
+            one height, the odometer gate's grammar. The ghost was right when
+            the word sat *under* a paragraph and a primary (rounds 32–33);
+            beside a primary it is the secondary, and the secondary has a box.
           */
           <Button
             label="Choose from library"
-            variant="ghost"
+            variant="outline"
             size="small"
             onPress={() => void choose()}
           />
