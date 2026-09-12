@@ -151,3 +151,60 @@ jest.mock('@supabase/supabase-js', () => ({
     },
   }),
 }));
+
+/*
+  ── `expo-iap` — the App Store, off-device ───────────────────────────────────
+
+  A native module with no JS fallback: its `import` is harmless (the module is
+  resolved lazily through a Proxy) but the first real call throws `Cannot find
+  native module 'ExpoIap'` — reproduced under this runner on 12 Sep, which is
+  the same absence Expo Go has. `src/api/store.ts` is the only importer.
+
+  Two things beyond the image-picker pattern above, both because the package
+  is **event-driven**: a purchase is delivered on `purchaseUpdatedListener` and
+  a failure on `purchaseErrorListener`, never as a return value. So the mock
+  keeps a listener set per event, and exposes `__emit(event, payload)` so a
+  test can deliver one the way the native side would — and `__listenerCount`
+  so it can prove the adapter unsubscribed afterwards. Both are test-only and
+  prefixed to say so; nothing in `src/` may reach for them.
+
+  Availability is not mocked here. The adapter asks
+  `requireOptionalNativeModule('ExpoIap')` from `expo`, which under this
+  runner answers `null` — "this build cannot buy" — exactly as Expo Go does.
+  A test that needs a store present mocks `expo` itself and says so.
+*/
+jest.mock('expo-iap', () => {
+  const listeners = {
+    'purchase-updated': new Set(),
+    'purchase-error': new Set(),
+  };
+  const subscribe = (event) => (listener) => {
+    listeners[event].add(listener);
+    return { remove: () => listeners[event].delete(listener) };
+  };
+
+  return {
+    __esModule: true,
+    ErrorCode: {
+      AlreadyOwned: 'already-owned',
+      DeferredPayment: 'deferred-payment',
+      NetworkError: 'network-error',
+      Pending: 'pending',
+      PurchaseError: 'purchase-error',
+      UserCancelled: 'user-cancelled',
+    },
+    initConnection: jest.fn(async () => true),
+    endConnection: jest.fn(async () => true),
+    fetchProducts: jest.fn(async () => []),
+    requestPurchase: jest.fn(async () => []),
+    finishTransaction: jest.fn(async () => undefined),
+    restorePurchases: jest.fn(async () => undefined),
+    getAvailablePurchases: jest.fn(async () => []),
+    purchaseUpdatedListener: jest.fn(subscribe('purchase-updated')),
+    purchaseErrorListener: jest.fn(subscribe('purchase-error')),
+    __emit: (event, payload) => {
+      for (const listener of [...listeners[event]]) listener(payload);
+    },
+    __listenerCount: (event) => listeners[event].size,
+  };
+});
