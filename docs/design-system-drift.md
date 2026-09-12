@@ -2310,10 +2310,11 @@ has reached the brief."*
 
 **Parking lot, rounds 34–36 — for David:**
 
-- *The scan screen's tab bar* (rounds 34, 36): a viewfinder above GARAGE /
-  PLAN / ADVISOR reads as a tab child; the critic wants the act full-bleed
-  with the readout as its only chrome. Now that the viewfinder exists, it is
-  a navigation option (`tabBarStyle` per route) rather than a build.
+- ~~*The scan screen's tab bar* (rounds 34, 36)~~ — **taken, 12 Sep 15:59
+  (`dad16c1`).** `TabBar` draws nothing on `InvoiceScan`, read off the
+  focused tab's nested route; the viewfinder's foot pays the bottom inset
+  the bar used to. Seen on the simulator: the act takes the frame, back to
+  Service brings the bar with it.
 - *The pinned stack* (rounds 34–36): plate, model line, rail and primary
   hold ~26% of the screen once scrolled; the critic would collapse the model
   line and the primary with the title and return them on scroll-up. The
