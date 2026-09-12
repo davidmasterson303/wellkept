@@ -105,6 +105,96 @@ jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn(async () => ({ canceled: true })),
 }));
 
+/*
+  ── `expo-camera`, as the viewfinder sees it ────────────────────────────────
+
+  `Viewfinder.tsx` imports the module directly (its docblock says why the
+  `pickImage` seam does not extend to it), so every screen test that mounts
+  the scan mounts a camera. The stub answers the way a phone with a camera and
+  a granted permission does: the permission hook says granted, the view
+  reports ready on mount, the lens query finds the wide lens, and a capture
+  resolves a JPEG. `InvoiceScanScreen.test.tsx` turns each of those the other
+  way through `__camera` — a denied permission, no lens, a rejected capture —
+  which is what makes the readout's words testable without a device.
+
+  `CameraView` is a class in the real module and the viewfinder calls methods
+  on its ref, so the stub is a `forwardRef` exposing the same two methods; the
+  stub's `onCameraReady` fires from an effect so the "ready" path runs in the
+  same order it does natively (mount, then the event).
+*/
+jest.mock('expo-camera', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
+  const __camera = {
+    permission: { status: 'granted', granted: true, canAskAgain: true, expires: 'never' },
+    requestPermission: jest.fn(async () => __camera.permission),
+    getAvailableLensesAsync: jest.fn(async () => ['Back Camera']),
+    takePictureAsync: jest.fn(async () => ({
+      uri: 'file:///tmp/capture.jpg',
+      width: 3024,
+      height: 4032,
+      format: 'jpg',
+    })),
+    /** Whether the stub view reports ready on mount. */
+    ready: true,
+    reset() {
+      __camera.permission = { status: 'granted', granted: true, canAskAgain: true, expires: 'never' };
+      __camera.ready = true;
+      __camera.requestPermission.mockReset().mockImplementation(async () => __camera.permission);
+      __camera.getAvailableLensesAsync.mockReset().mockResolvedValue(['Back Camera']);
+      __camera.takePictureAsync.mockReset().mockResolvedValue({
+        uri: 'file:///tmp/capture.jpg',
+        width: 3024,
+        height: 4032,
+        format: 'jpg',
+      });
+    },
+  };
+
+  const CameraView = React.forwardRef(function CameraView(props, ref) {
+    React.useImperativeHandle(ref, () => ({
+      takePictureAsync: (...args) => __camera.takePictureAsync(...args),
+      getAvailableLensesAsync: () => __camera.getAvailableLensesAsync(),
+    }));
+    const { onCameraReady } = props;
+    React.useEffect(() => {
+      if (__camera.ready) onCameraReady?.();
+    }, [onCameraReady]);
+    return React.createElement(View, { testID: 'camera-view', style: props.style });
+  });
+
+  return {
+    CameraView,
+    /*
+      The hook's tuple: the current answer (`null` for the first frame, as the
+      real hook), a request that resolves the stub's answer, and a get.
+    */
+    useCameraPermissions: jest.fn(() => {
+      const [answer, setAnswer] = React.useState(null);
+      React.useEffect(() => {
+        setAnswer(__camera.permission);
+      }, []);
+      const request = React.useCallback(async () => {
+        const next = await __camera.requestPermission();
+        setAnswer(next);
+        return next;
+      }, []);
+      const get = React.useCallback(async () => __camera.permission, []);
+      return [answer, request, get];
+    }),
+    __camera,
+  };
+});
+
+jest.mock('expo-haptics', () => ({
+  ImpactFeedbackStyle: { Light: 'light', Medium: 'medium', Heavy: 'heavy', Soft: 'soft', Rigid: 'rigid' },
+  NotificationFeedbackType: { Success: 'success', Warning: 'warning', Error: 'error' },
+  impactAsync: jest.fn(async () => undefined),
+  notificationAsync: jest.fn(async () => undefined),
+  selectionAsync: jest.fn(async () => undefined),
+}));
+
 jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
   getPermissionsAsync: jest.fn(async () => ({ granted: true, canAskAgain: true })),
