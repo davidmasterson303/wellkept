@@ -375,6 +375,56 @@
 >
 > ---
 >
+> #### 12 Sep, afternoon — everything merged, the captures for Claude Design, and one defect found by looking
+>
+> **On `main` and pushed (`1439601`):** the Service tab loop (`bb4b96b`, 8 of
+> 9 lines), the store adapter and E6's wire (`bf79f92`), B9's viewfinder with
+> the loop continued to **8/10** and `Continue: no` (`c1369a7`), the scan's
+> own line of E6's wire (`1439601`), and the two fixes below. Verified on the
+> merged tree each time: mobile **678/678** in band, exit 0; root 3619;
+> both `tsc` clean. Metro on 8081 restarted after each merge that added
+> files. ⚠ Not promoted: `web-live` is `8f90ce4f` and `demo-live` `0fedcb2c`
+> (the Service loop). The next `promote-web` publishes the E6 402 wire (inert
+> while enforcement is off) and B9 — JS only; nothing here needs a build to
+> run in Expo Go, and the device build carries all of it natively.
+>
+> **The Claude Design sync** (`~/Desktop/tappet-design-sync-2026-09-12/`,
+> Cowork's folder, its `MANIFEST.md` rewritten around what was shot): the
+> four tab roots at HEAD, the vehicle detail with a real photograph through
+> the app's own ADD PHOTO control (never taken before), and the web garage and
+> M3 dossier at 1440. Shot on a second iPhone 16 Pro simulator ("design sync")
+> with the 22 Aug dev client, its floating tools button off by preference
+> (`EXDevMenuShowFloatingActionButton`), against a fixtures Metro.
+>
+> - ⚠ **Found by looking: ADD printed on top of ACCOUNT on the Plan root**,
+>   live since `b8e2d59` — the Plan copied the Garage's trailing row without
+>   `paddingRight: ACCOUNT_CONTROL_SLOT`, the padding the Garage carries with
+>   a note saying this exact collision removes a feature. That is why the Add
+>   control David could not find on his phone on 11 Sep was there and
+>   unreadable. Fixed and pinned (`5e6ea37`).
+> - The fixtures now answer `POST /upload-photo` with the picked file's own
+>   `uri` and serve it back as `photo_url` (`16a23e0`), so the control path —
+>   sheet, picker, encode, reload, `PhotoGrade` — runs with no session; the
+>   server stores bytes unchanged, so the pixels are the product's. The dev
+>   account's password is stale (400) — still David's to refresh.
+> - **Finding, written up in the manifest, not fixed:** the candidate
+>   `owner-photo.jpg` is a *night* image in the house key, so it cannot test
+>   what was asked. A generated flat-daylight owner snapshot through the same
+>   control shows the grade does not make night — highlights stay white — and
+>   the hero's **top chrome loses its floor**: CHANGE PHOTO sits on a blown
+>   sky. The identity band survives on the bed. The hero's top needs its own
+>   floor (a scrim or dim ramp under the nav row) or an ink that adapts.
+>   Claude Design's, with the frames.
+> - `/garage` 307s to `/login` on the demo (protected); the demo garage is `/`.
+>
+> **David's, from these lanes:** the locked brief's B1 still says "No serif
+> except the WK mark" (frozen 6 Sep, a day before the rename) — only David
+> edits `design-loop/mobile-ios/brief.md`; B6's short provenance tokens
+> (`SERVICE_BASIS_SHORT` beside `SERVICE_BASIS_LABELS` in `packages/core`,
+> drift §6.16) — the one 🟡 left on the Service tab; and the first App Store
+> upload should be watched for ITMS-90683, since `expo-camera` is in without
+> `NSMicrophoneUsageDescription` (picture mode never touches audio).
+>
 > #### 12 Sep, evening — the store adapter is built against the mocked module; nothing has been bought
 >
 > Branch `worktree-agent-a9aecf2a18444c376`, cut from `dd3b805`; not merged.
