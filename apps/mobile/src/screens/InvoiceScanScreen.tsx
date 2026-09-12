@@ -443,7 +443,7 @@ export function InvoiceScanScreen({
 
         Outside the scroller and full height: a viewfinder is a frame, not a
         band, and the feed fills what the header and the tab bar leave. R47
-        still holds — the nav says SCAN AN INVOICE and the screen does not
+        still holds — the nav says SCAN INVOICE and the screen does not
         repeat it; the readout names the act instead.
 
         **No PDF claim.** An earlier frame said "A PDF works too", which the

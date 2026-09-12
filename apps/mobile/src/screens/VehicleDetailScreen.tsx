@@ -1232,10 +1232,11 @@ export function VehicleDetailScreen({
         <BandRow label="Plan" count={wishlistCount} onPress={onOpenWishlist} />
         {/*
           No `detail` line. The rows are one line each, and a two-line row in a
-          table of one-liners is the row that looks broken — "Scan an invoice"
-          already says what it does.
+          table of one-liners is the row that looks broken — "Scan invoice"
+          already says what it does. One name for the act, with the Service
+          root's primary and the scan's nav title (round 34's Cut list).
         */}
-        <BandRow label="Scan an invoice" onPress={onScanInvoice} last />
+        <BandRow label="Scan invoice" onPress={onScanInvoice} last />
       </View>
 
       {/*
