@@ -2325,6 +2325,22 @@ has reached the brief."*
   when a section has one overdue item; §6.15 kept it as the notification
   body the two must agree on. Unchanged, for the same reason.
 
+**B6 closed after the stop — the token beside the sentence, 12 Sep 15:48.**
+The one line the loop could not close from a worktree is closed from the
+main tree (`317e4a4`): `SERVICE_BASIS_SHORT` sits beside
+`SERVICE_BASIS_LABELS` in `packages/core/src/service-provenance.ts` —
+`RECORDS`, `SIGN-UP`, `ESTIMATED`, the critic's own tokens — and the guard
+holds each token to a word its sentence already says, so a token cannot
+claim more than the sentence does. The phone's Due row prints the token in
+the chrome's mono voice and speaks the sentence: it is the meta line's
+accessibility label. Measured on the iPhone 16 Pro simulator at 402pt:
+*"Every 15,000 mi · SIGN-UP"*, *"Every 5,000 mi or 12 months · RECORDS"*,
+*"Every 7,500 mi · ESTIMATED"* — every meta line one line, no orphan. The
+web's `ServiceDueList` keeps the sentence; it has room. Not re-judged: the
+loop stopped on its own rule, and this is exactly the change the critic
+prescribed. The frame is `~/Desktop/tappet-design-sync-2026-09-12/
+screens-service/01-due.png`, with 01b, 03 and 05 re-shot beside it.
+
 ---
 
 ## 12. The identity, redrawn against a design critic — 7 Sep 2026
