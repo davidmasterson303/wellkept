@@ -317,6 +317,68 @@
 >
 > ---
 >
+> #### 12 Sep, evening — the store adapter is built against the mocked module; nothing has been bought
+>
+> Branch `worktree-agent-a9aecf2a18444c376`, cut from `dd3b805`; not merged.
+> The brief was `scratchpad/briefs/iap-adapter.md`, and every claim below was
+> checked against the code and the installed package rather than the board.
+>
+> **What is built.** `apps/mobile/src/api/store.ts` is the only importer of
+> `expo-iap`: `storeAvailability()` asks `requireOptionalNativeModule('ExpoIap')`
+> first, so Expo Go and this runner answer `unavailable` as a state;
+> `loadSubscriptionOptions()` answers `ready | none | failed | unavailable`,
+> where `none` is "connected, Apple returned none of our ids" — the honest
+> state until App Store Connect has products — and is never reported as
+> connection trouble; `purchase()` settles once on whichever of the event and
+> the promise arrives first; `restore()` is `restorePurchases()` then
+> `getAvailablePurchases()`, empty = `nothing-to-restore`; `finish()` is a
+> separate step. `src/purchases/usePaywall.ts` is the composition — store →
+> `verifyPurchase` → `resolvePurchase` → `finish` **only** on `entitled` /
+> `recorded-not-entitled` — and `PaywallHost` mounts the paywall once beside
+> the root navigator, opened by `requestUpgrade(feature)` or the Tappet Plus
+> row in Settings. `PaywallScreen` gained `none` and `unavailable` and shows no
+> price Apple did not return. Product ids come from `PRODUCT_TIERS` alone.
+>
+> **What the pod's source settled** (`openiap-versions.json` pins `openiap`
+> 3.4.0 → `hyodotdev/openiap` at that tag, `packages/apple/Sources/`): a
+> success is emitted **and** resolved; a cancel and a deferred purchase are
+> emitted **and** rejected (`user-cancelled`, `deferred-payment`); no iOS path
+> resolves with nothing; `purchaseToken` is `jwsRepresentation ?? transactionId`,
+> so the server judges what it is sent; `subscriptionPeriodUnitIOS` is nil
+> only for a non-renewing subscription, so a product without one is dropped
+> loudly rather than labelled from its name. `store.ts` cites the file.
+>
+> **What the device build still has to prove, in order:** the paywall reads
+> `unavailable` in Expo Go and `none` on the device build today; once App
+> Store Connect has the two products, `ready` with Apple's prices; then **one
+> sandbox purchase** — the event/promise order across the bridge, the token
+> verifying `entitled` on `web-live`, `finishTransaction` after it — and then
+> **Restore** on a reinstall. Only after that: `PAID_FEATURES_ENFORCED`, and
+> the `ai-budget.test.ts` guard. ⚠ The products are weeks out — the App Store
+> Connect record waits on the Apple account moving Individual → Organization
+> (Cowork, 12 Sep) — and nothing here should be read as IAP shipping.
+>
+> **Found while wiring E6, not on the board:**
+>
+> - **The dossier has no entry point on the phone.** `load-vehicle` returns
+>   the dossier the sweep or the web wrote; no mobile request can carry
+>   `feature: 'dossier'`, so the phone's half of the wire is the advisor
+>   (done) and the invoice scan (the other lane's one line, at merge). After
+>   the flip, a free owner's car is refused by the gate *in the sweep* and the
+>   phone shows an empty dossier with no upgrade path — a product question,
+>   named here rather than answered.
+> - **Nothing listens at launch.** An unfinished transaction is re-delivered
+>   on the next launch into no listener; Restore picks it up and the webhook
+>   writes the entitlement regardless. A launch-time reconciliation is not
+>   built; `store.ts` says why.
+> - **The one account fact the phone holds went stale.** `AccountScreen` reads
+>   its subscription once when pushed, and the paywall now opens over it from
+>   its own row; the deletion warning (E5) would have been wrong for exactly
+>   the person who just bought. `PaywallHost` announces a `grantsAccess`
+>   resolution and the navigator turns it into an epoch the screen re-reads on.
+>
+> ---
+>
 > ### ⚠ START HERE — 4 Sep 2026, the design pass
 >
 > Two days of a design-critic loop: each page screenshotted at 390px and 1440px, handed
@@ -1656,8 +1718,8 @@
 > | **2** | **App Store Connect setup** | **David** · weekend | Products matching `PRODUCT_TIERS` **exactly**, the notifications URL, a sandbox tester, App Review info. Setup sheet with the verified strings was delivered 18 Aug. ✅ The promote it depended on is already done |
 > | **3** | **D2 — the price** | **David** | Standing recommendation $8.99/mo · $79/yr. Blocks creating the products, not the code: Apple returns a localised price and the app renders that |
 > | **4** | **The `DemoBanner` decision** | **David** | Gate it on an env var (cleanest — the codebase has no site-distinguishing flag yet), gate on hostname, or leave it. Costs a promote |
-> | **5** | **`expo-iap` + the store adapter** | Claude Code | The last of E8. A native module, so it **costs an EAS build**, and a purchase cannot be tested until 2 lands. Everything it plugs into is built and tested |
-> | **6** | **E6 — the upgrade prompt** | Claude Code | ~0.5 ed, and **it is now genuinely unblocked** — it was correctly blocked on E8 because there was nothing to buy. `ai-budget.test.ts:174` asserts the limit message offers no upgrade; that assertion becomes wrong once 5 ships |
+> | **5** | ~~**`expo-iap` + the store adapter**~~ | Claude Code | ✅ **Built 12 Sep, pending products** — `apps/mobile/src/api/store.ts`, composed in `src/purchases/`, paywall routed from Settings and from a refusal; 95 mobile tests against the mocked module. ⚠ **Nothing has been bought.** The device build has to show `unavailable` → `none`, and a sandbox purchase then Restore once App Store Connect has products — weeks out, behind the Organization account. See the 12 Sep block at the top |
+> | **6** | **E6 — the upgrade prompt** | Claude Code | **Wired, off** (12 Sep): the gate's refusal carries `code: 'needs-subscription'` + `feature` from `featureRefusal` through the four sites and two routes to `ApiRequestError.code`; the advisor opens the paywall on it. `PAID_FEATURES_ENFORCED` is untouched and `ai-budget.test.ts:180` "does not offer an upgrade that does not exist yet" stays until a sandbox purchase has been through Restore |
 >
 > ⚠ **Ordering that is not a preference:** CLAUDE.md §8 says a mobile build needing
 > a new `/api/v1/*` route must be promoted first. That is **already satisfied** —
