@@ -12,6 +12,7 @@ import {
 
 import { askAdvisor, MAX_MESSAGE_LENGTH } from '../api/consultant';
 import { ApiRequestError } from '../api/client';
+import { requestUpgrade } from '../purchases/upgrade-prompt';
 import CutSurface from '../components/CutSurface';
 import RootScreen from '../components/RootScreen';
 import Button from '../components/Button';
@@ -247,7 +248,23 @@ export function AdvisorScreen({
       */
       setTurns((current) => current.slice(0, -1));
 
-      if (apiError.status === 401) {
+      if (apiError instanceof ApiRequestError && apiError.needsSubscription) {
+        /*
+          ── E6's wire · a refusal is not a failure ───────────────────────────
+
+          The gate said the advisor is part of the subscription. The server's
+          sentence stays on screen under the composer — it names the feature
+          and what stays free — and the paywall opens over it, because the
+          answer is a purchase and "try again" (the 502 branch below) cannot
+          help. Keyed on the code, not the status: `ApiRequestError` says why.
+
+          ⚠ Off today. `PAID_FEATURES_ENFORCED` is what makes this branch
+          reachable, and it stays off until a sandbox purchase has been
+          through Restore.
+        */
+        setError(apiError.message);
+        requestUpgrade('advisor');
+      } else if (apiError.status === 401) {
         setError('Your session ended. Sign in again to keep talking.');
         onSignOut();
       } else if (apiError.status === 429) {

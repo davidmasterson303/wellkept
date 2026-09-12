@@ -4,6 +4,8 @@ import { render, userEvent, waitFor } from '@testing-library/react-native';
 import { AdvisorScreen } from '../AdvisorScreen';
 import { askAdvisor } from '../../api/consultant';
 import { auditText, belowFloor } from '../../test-support/contrast';
+import { ApiRequestError } from '../../api/client';
+import { onUpgradeRequested } from '../../purchases/upgrade-prompt';
 
 /**
  * The advisor's answer, rendered.
@@ -350,5 +352,64 @@ describe('asking before a question goes to Google', () => {
     await view.findByText(/this car’s records go to Google/);
     // ⚠ And says what does *not* — narrower than the invoice sheet on purpose.
     await view.findByText(/No photographs and no documents/);
+  });
+});
+
+describe('when the advisor is refused as a paid feature — E6’s wire, off', () => {
+  /*
+    The server's gate answers `code: 'needs-subscription'` beside its sentence
+    (`lib/feature-gate.ts`). The screen keys on the code, keeps the sentence,
+    and asks for the paywall — rather than the 502 branch's "try again", which
+    cannot help when the answer is a purchase.
+
+    Reachable only with `PAID_FEATURES_ENFORCED` on, which it is not; this is
+    the wire, tested while it is cold.
+  */
+  const refusal = () =>
+    new ApiRequestError({
+      status: 402,
+      message: 'The advisor is part of Tappet Plus. Your garage, service log, mileage and recall alerts stay free.',
+      code: 'needs-subscription',
+    });
+
+  it('keeps the server’s sentence and asks for the paywall', async () => {
+    ask.mockRejectedValue(refusal());
+    const upgrade = jest.fn();
+    const stop = onUpgradeRequested(upgrade);
+
+    const view = await renderAdvisor();
+
+    expect(await view.findByText(/is part of Tappet Plus/)).toBeTruthy();
+    expect(upgrade).toHaveBeenCalledWith({ feature: 'advisor' });
+    // Not the retry advice: trying again cannot help here.
+    expect(view.queryByText(/try again/i)).toBeNull();
+
+    stop();
+  });
+
+  it('leaves the question in the composer, like every other refusal', async () => {
+    ask.mockRejectedValue(refusal());
+    const stop = onUpgradeRequested(jest.fn());
+
+    const view = await renderAdvisor('Is this quote fair?');
+
+    await view.findByText(/is part of Tappet Plus/);
+    expect(view.getByDisplayValue('Is this quote fair?')).toBeTruthy();
+
+    stop();
+  });
+
+  it('does not open the paywall on an ordinary 502', async () => {
+    // Anti-vacuous: the code is the key, not the failure.
+    ask.mockRejectedValue(new ApiRequestError({ status: 502, message: 'Failed to answer' }));
+    const upgrade = jest.fn();
+    const stop = onUpgradeRequested(upgrade);
+
+    const view = await renderAdvisor();
+
+    expect(await view.findByText(/try again/i)).toBeTruthy();
+    expect(upgrade).not.toHaveBeenCalled();
+
+    stop();
   });
 });
