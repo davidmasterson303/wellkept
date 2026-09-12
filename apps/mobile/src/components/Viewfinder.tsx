@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import type { InvoiceFile } from '../api/documents';
 import { INVOICE_QUALITY, invoiceFileFromCapture } from '../media/invoice-image';
@@ -156,6 +157,7 @@ export default function Viewfinder({
   /** Drawn beneath the controls — the model caveat, or the stood-down note. */
   foot?: ReactNode;
 }) {
+  const insets = useContext(SafeAreaInsetsContext);
   const camera = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [asked, setAsked] = useState(false);
@@ -320,7 +322,12 @@ export default function Viewfinder({
         </View>
       ) : null}
 
-      <View style={styles.foot}>
+      {/*
+        The tab bar stands down on this screen (`TabBar.tsx`), so the home
+        indicator is the foot's neighbour and the foot owes it the inset the
+        bar used to pay. `Math.max` so a device without one keeps the rhythm.
+      */}
+      <View style={[styles.foot, { paddingBottom: Math.max(insets?.bottom ?? 0, space.lg) }]}>
         {live ? (
           <View style={styles.controls}>
             {/*
