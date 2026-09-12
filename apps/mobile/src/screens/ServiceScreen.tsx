@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContext } from '@react-navigation/native';
 
 import Button from '../components/Button';
 import RootScreen from '../components/RootScreen';
@@ -102,6 +103,17 @@ export function ServiceScreen({
   }, [initialSegment]);
 
   /*
+    Pushed from the car's hub, the native header's back label already names
+    the car — "‹ BMW M235I" — and the same name 24pt beneath it is the "two
+    names on one screen" `ScreenTitle` retired. The line is the root's, where
+    nothing else says whose list this is. `NavigationContext` is read the way
+    `RootScreen` and `PlanScreen` read it, so the three cannot disagree about
+    whether a header is present.
+  */
+  const navigation = useContext(NavigationContext);
+  const pushed = navigation?.canGoBack() ?? false;
+
+  /*
     ── ⚠ 11 Sep · B8: the root's name collapses, the rail and the primary stay ──
 
     `RootScreen` draws the condensed title and turns it into the mono nav title
@@ -121,7 +133,7 @@ export function ServiceScreen({
         car it never named, which on a two-car garage is a list with no
         subject. Above the rail: it says what the rail switches between.
       */}
-      {vehicleTitle ? (
+      {vehicleTitle && !pushed ? (
         <View style={styles.context}>
           <Text style={styles.contextLabel} numberOfLines={1}>
             {vehicleTitle}

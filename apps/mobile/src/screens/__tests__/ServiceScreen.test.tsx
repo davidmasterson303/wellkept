@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
+import { NavigationContext } from '@react-navigation/native';
 
 import { ServiceScreen } from '../ServiceScreen';
 import { apiRequest } from '../../api/client';
@@ -67,6 +68,29 @@ describe('the root names its car', () => {
 
     await view.findByText('Scan invoice');
     expect(view.queryByText(/undefined/)).toBeNull();
+  });
+
+  it('leaves the name to the back label when pushed under a native header', async () => {
+    /*
+      Pushed from the car's hub the header already reads "‹ BMW M235I"; the
+      same name under it is the two-names-on-one-screen `ScreenTitle` retired.
+      `canGoBack()` is the question `RootScreen` asks, so they cannot disagree.
+    */
+    const navigation = { canGoBack: () => true } as never;
+    const view = await render(
+      <NavigationContext.Provider value={navigation}>
+        <ServiceScreen
+          vehicleId="v1"
+          vehicleTitle="2015 BMW M235i"
+          onScan={jest.fn()}
+          onOpenVisit={jest.fn()}
+          onSignOut={jest.fn()}
+        />
+      </NavigationContext.Provider>
+    );
+
+    await view.findByText('Scan invoice');
+    expect(view.queryByText('2015 BMW M235i')).toBeNull();
   });
 });
 
