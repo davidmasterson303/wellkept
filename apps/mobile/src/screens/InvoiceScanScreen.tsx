@@ -13,6 +13,7 @@ import Viewfinder from '../components/Viewfinder';
 import Working from '../components/Working';
 import { scanLine, scanStages, type ScanPhase } from '../components/working-stages';
 import { ApiRequestError } from '../api/client';
+import { requestUpgrade } from '../purchases/upgrade-prompt';
 import { PAGE_BODY, space, text, type } from '../theme';
 import AiConsentSheet from '../components/AiConsentSheet';
 import { INVOICE_AI_CONSENT } from '@tappet/core/ai-consent-copy';
@@ -246,6 +247,33 @@ export function InvoiceScanScreen({
         setState({ status: 'done', itemsExtracted: result.itemsExtracted });
         onFiled?.();
       } catch (caught) {
+        if (caught instanceof ApiRequestError && caught.needsSubscription) {
+          /*
+            ── E6's wire · a refusal is not a failure ─────────────────────────
+
+            The gate said invoice scanning is part of the subscription
+            (`lib/feature-gate.ts`, forwarded by `/upload-document` as 402
+            with `code: 'needs-subscription'`). The server's sentence is the
+            message — it names the feature and what stays free — under a
+            heading that is not "That did not upload", because it did not
+            fail; and it is not retryable, because trying again cannot help
+            when the answer is a purchase. The paywall opens over it, the same
+            way the advisor's refusal does.
+
+            ⚠ Off today. `PAID_FEATURES_ENFORCED` is what makes this branch
+            reachable, and it stays off until a sandbox purchase has been
+            through Restore.
+          */
+          setState({
+            status: 'error',
+            heading: 'Part of Tappet Plus',
+            message: caught.message,
+            retryable: false,
+          });
+          requestUpgrade('invoice-scanning');
+          return;
+        }
+
         const message = describeUploadError(caught);
         /*
           Reached only from `uploadInvoice`'s network and server paths — a

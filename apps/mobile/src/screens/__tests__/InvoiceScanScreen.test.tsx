@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { InvoiceScanScreen } from '../InvoiceScanScreen';
 import { uploadInvoice, type InvoiceFile } from '../../api/documents';
 import { ApiRequestError } from '../../api/client';
+import { onUpgradeRequested } from '../../purchases/upgrade-prompt';
 import { READOUT } from '../../components/Viewfinder';
 
 /**
@@ -511,6 +512,38 @@ describe('when the upload fails', () => {
 
     expect(await view.findByText('That did not upload')).toBeTruthy();
     expect(props.onSignOut).not.toHaveBeenCalled();
+  });
+
+  it('a paid-feature refusal keeps the server’s sentence, offers no retry, and asks for the paywall — E6’s wire, off', async () => {
+    /*
+      `/upload-document` forwards the gate's `code: 'needs-subscription'` as a
+      402 beside its sentence. Trying again cannot help when the answer is a
+      purchase, so the retry the other failures offer is withheld, the heading
+      is not "That did not upload" (nothing failed), and the paywall is asked
+      for with the feature named — the advisor's shape exactly. Reachable only
+      with `PAID_FEATURES_ENFORCED` on, which it is not.
+    */
+    const user = userEvent.setup();
+    upload.mockRejectedValue(
+      new ApiRequestError({
+        status: 402,
+        message: 'Invoice scanning is part of Tappet Plus. Your garage, service log, mileage and recall alerts stay free.',
+        code: 'needs-subscription',
+      })
+    );
+    const upgrade = jest.fn();
+    const stop = onUpgradeRequested(upgrade);
+
+    const { view } = await mount();
+    await user.press(view.getByText('Choose from library'));
+
+    expect(await view.findByText(/is part of Tappet Plus/)).toBeTruthy();
+    expect(view.getByText('Part of Tappet Plus')).toBeTruthy();
+    expect(view.queryByText('That did not upload')).toBeNull();
+    expect(view.queryByText('Try again')).toBeNull();
+    expect(upgrade).toHaveBeenCalledWith({ feature: 'invoice-scanning' });
+
+    stop();
   });
 
   it('shows the failure rather than returning silently to idle', async () => {
