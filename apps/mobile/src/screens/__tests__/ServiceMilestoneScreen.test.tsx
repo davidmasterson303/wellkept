@@ -2,7 +2,7 @@ import { render, userEvent, waitFor } from '@testing-library/react-native';
 
 import { ServiceMilestoneScreen, groupDigits } from '../ServiceMilestoneScreen';
 import { apiRequest } from '../../api/client';
-import { SERVICE_BASIS_LABELS } from '@tappet/core/service-provenance';
+import { SERVICE_BASIS_LABELS, SERVICE_BASIS_SHORT } from '@tappet/core/service-provenance';
 import { status } from '../../theme';
 
 /**
@@ -156,8 +156,18 @@ describe('provenance', () => {
 
     // Oil counts from the record at 92,000 → 99,500; the rotation has nothing
     // to count from and takes the next boundary, 100,000. One visit, two claims.
-    expect(await view.findByText(SERVICE_BASIS_LABELS['service-history'])).toBeTruthy();
-    expect(view.getByText(SERVICE_BASIS_LABELS['mileage-estimate'])).toBeTruthy();
+    expect(await view.findByText(SERVICE_BASIS_SHORT['service-history'])).toBeTruthy();
+    expect(view.getByText(SERVICE_BASIS_SHORT['mileage-estimate'])).toBeTruthy();
+
+    /*
+      B6: the row prints the token and *speaks* the sentence. The token is a
+      word of the sentence and nothing more (core holds that), and the
+      sentence is the meta line's accessibility label, so a screen reader
+      hears the claim in full — the printed sentence is gone, not the claim.
+    */
+    expect(view.getAllByLabelText(new RegExp(SERVICE_BASIS_LABELS['service-history'])).length).toBeGreaterThan(0);
+    expect(view.getAllByLabelText(new RegExp(SERVICE_BASIS_LABELS['mileage-estimate'])).length).toBeGreaterThan(0);
+    expect(view.queryByText(SERVICE_BASIS_LABELS['service-history'])).toBeNull();
   });
 
   it('says "estimated" when there is no history to count from', async () => {
@@ -169,8 +179,8 @@ describe('provenance', () => {
     const view = await render(<ServiceMilestoneScreen vehicleId="v1" onSignOut={jest.fn()} />);
     await passTheGate(user, view);
 
-    expect(await view.findByText(SERVICE_BASIS_LABELS['mileage-estimate'])).toBeTruthy();
-    expect(view.queryByText(SERVICE_BASIS_LABELS['service-history'])).toBeNull();
+    expect(await view.findByText(SERVICE_BASIS_SHORT['mileage-estimate'])).toBeTruthy();
+    expect(view.queryByText(SERVICE_BASIS_SHORT['service-history'])).toBeNull();
   });
 
   it('claims service records on the row that has them', async () => {
@@ -188,7 +198,7 @@ describe('provenance', () => {
     await passTheGate(user, view);
 
     // The oil service now counts from 92,000 rather than from the odometer.
-    expect(await view.findByText(SERVICE_BASIS_LABELS['service-history'])).toBeTruthy();
+    expect(await view.findByText(SERVICE_BASIS_SHORT['service-history'])).toBeTruthy();
   });
 
   it('does not let a remembered date pass as a record', async () => {
@@ -211,8 +221,8 @@ describe('provenance', () => {
     const view = await render(<ServiceMilestoneScreen vehicleId="v1" onSignOut={jest.fn()} />);
     await passTheGate(user, view);
 
-    expect(await view.findByText(SERVICE_BASIS_LABELS['owner-reported'])).toBeTruthy();
-    expect(view.queryByText(SERVICE_BASIS_LABELS['service-history'])).toBeNull();
+    expect(await view.findByText(SERVICE_BASIS_SHORT['owner-reported'])).toBeTruthy();
+    expect(view.queryByText(SERVICE_BASIS_SHORT['service-history'])).toBeNull();
   });
 });
 
@@ -230,7 +240,7 @@ describe('when the maintenance request fails', () => {
     await passTheGate(user, view);
 
     expect(view.queryByText(/Still around/)).toBeNull();
-    expect(await view.findByText(SERVICE_BASIS_LABELS['mileage-estimate'])).toBeTruthy();
+    expect(await view.findByText(SERVICE_BASIS_SHORT['mileage-estimate'])).toBeTruthy();
   });
 
   it('degrades to estimating rather than to an error', async () => {

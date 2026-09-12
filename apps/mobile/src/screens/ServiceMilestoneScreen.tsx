@@ -17,6 +17,7 @@ import {
 import {
   SCHEDULE_BASIS_LABELS,
   SERVICE_BASIS_LABELS,
+  SERVICE_BASIS_SHORT,
   serviceBasis,
 } from '@tappet/core/service-provenance';
 import { historyLookups, type ServiceHistoryRow } from '@tappet/core/service-history';
@@ -740,9 +741,23 @@ function DueRow({
 }) {
   const overdue = service.status === 'overdue';
   const position = positionLabel(service);
-  const basis = service.status === 'unknown' ? null : SERVICE_BASIS_LABELS[serviceBasis(service.evidence)];
+  /*
+    ── B6 · the token on the line, the sentence in the ear ─────────────────
+
+    The meta line prints `SERVICE_BASIS_SHORT` — RECORDS · SIGN-UP · ESTIMATED,
+    the critic's own tokens (rounds 34–36) — because the sentence orphaned a
+    word at every iPhone width and a second line is not what a ledger row has
+    room for. The sentence is not dropped: it is the meta line's spoken label,
+    so a screen reader hears the claim in full, and core holds each token to
+    its sentence so the two cannot say different things.
+  */
+  const basisKey = service.status === 'unknown' ? null : serviceBasis(service.evidence);
+  const basis = basisKey ? SERVICE_BASIS_SHORT[basisKey] : null;
+  const basisSentence = basisKey ? SERVICE_BASIS_LABELS[basisKey] : null;
   const interval = intervalLabel(service);
   const spoken = [service.service, positionSentence(service)].filter(Boolean).join(', ');
+  /* What the meta line says out loud: the interval, then the sentence the token stands for. */
+  const metaSpoken = [interval, basisSentence].filter(Boolean).join(' · ');
 
   return (
     <View style={styles.row}>
@@ -786,12 +801,15 @@ function DueRow({
 
       <View style={styles.rowFoot}>
         {interval || basis ? (
-          <Text style={styles.meta}>
+          <Text style={styles.meta} accessibilityLabel={metaSpoken}>
             {interval}
             {interval && basis ? ' · ' : null}
             {/*
-              Its own node, so the claim is findable as the sentence core wrote
-              — the provenance tests look for `SERVICE_BASIS_LABELS[...]` whole.
+              Its own node, so the claim is findable as the token core wrote —
+              the provenance tests look for `SERVICE_BASIS_SHORT[...]` whole.
+              The line's own label carries the sentence, so a screen reader
+              hears "Based on what you told us at sign-up" where a sighted
+              reader sees SIGN-UP.
             */}
             {basis ? <Text style={styles.metaBasis}>{basis}</Text> : null}
           </Text>
@@ -957,7 +975,8 @@ const styles = StyleSheet.create({
     records" is a claim).
   */
   meta: { ...type.label, letterSpacing: 0, color: text.muted, flex: 1 },
-  metaBasis: { ...type.label, letterSpacing: 0, color: text.muted },
+  /* The token is chrome's voice — mono caps, like the heads and ADD beside it. */
+  metaBasis: { ...type.monoLabel, color: text.muted },
   /* Holds the action at the rule on a row with nothing to say beneath its name. */
   metaSpacer: { flex: 1 },
 
