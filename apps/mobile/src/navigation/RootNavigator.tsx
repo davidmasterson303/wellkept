@@ -39,6 +39,8 @@ import { AddVehicleScreen } from '../screens/AddVehicleScreen';
 import { VehicleDetailScreen } from '../screens/VehicleDetailScreen';
 import { AccountScreen } from '../screens/AccountScreen';
 import AccountControl from './AccountControl';
+import { PaywallHost } from '../purchases/PaywallHost';
+import { requestUpgrade } from '../purchases/upgrade-prompt';
 import BackControl from '../components/BackControl';
 import ChooseACar from '../components/ChooseACar';
 import { rememberVehicle } from './last-vehicle';
@@ -1199,6 +1201,16 @@ export function RootNavigator({ accessToken, email, onSignOut }: Session) {
   const navigation = useNavigationContainerRef<RootStackParamList>();
   const [atRoot, setAtRoot] = useState(true);
 
+  /*
+    ── E8 · the one account fact that can go stale on this device ───────────
+
+    Counts the times the paywall has said the server entitled the account.
+    `AccountScreen` re-reads its subscription on every change — it holds that
+    read for E5's deletion warning, and the paywall opens over it from its own
+    row. The number itself means nothing; `usePaywall.ts` carries the argument.
+  */
+  const [subscriptionEpoch, setSubscriptionEpoch] = useState(0);
+
   /**
    * Where the tree is, and which car it is about.
    *
@@ -1308,10 +1320,29 @@ export function RootNavigator({ accessToken, email, onSignOut }: Session) {
                 show a confirmation on. `App.tsx`'s gate takes over.
               */
               onDeleted={() => onSignOut()}
+              /*
+                E8: the settings way into the paywall. The same signal a
+                refused screen sends, with no feature — `PaywallHost` below is
+                what listens, and it is what makes this row honest to draw.
+              */
+              onSubscribe={() => requestUpgrade(null)}
+              subscriptionEpoch={subscriptionEpoch}
             />
           )}
         </Stack.Screen>
       </Stack.Navigator>
+
+      {/*
+        ── E8 · the paywall, mounted once, beside the navigator ──────────────
+
+        A sibling of the root stack for the same reason `AccountControl` is:
+        four tab stacks each mount their own advisor, and every one of them can
+        be refused. `requestUpgrade()` from any of them, or the account row
+        above, opens this one modal. It renders what the resolver returns and
+        decides nothing — `usePaywall.ts` is the composition and carries the
+        argument.
+      */}
+      <PaywallHost onEntitled={() => setSubscriptionEpoch((epoch) => epoch + 1)} />
 
       {/*
         ⚠ A sibling of the navigator — the *root* navigator — and outside every
