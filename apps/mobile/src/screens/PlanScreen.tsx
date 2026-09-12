@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { NavigationContext } from '@react-navigation/native';
 
 import RootScreen from '../components/RootScreen';
+import { ACCOUNT_CONTROL_SLOT } from '../navigation/AccountControl';
 import Segmented from '../components/Segmented';
 import { BuildScreen } from './BuildScreen';
 import { WishlistScreen } from './WishlistScreen';
@@ -151,8 +152,21 @@ const styles = StyleSheet.create({
     paddingTop: space.md,
     paddingBottom: space.sm,
   },
-  // The Garage's header chrome, to the token — one voice for one job.
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+  /*
+    The Garage's header chrome, to the token — one voice for one job — and
+    ⚠ with the Garage's room for the floating account control, which draws
+    over this corner from outside the navigator. The first version copied
+    the row and not the padding, and ADD printed on top of ACCOUNT on the
+    Plan root (seen in the 12 Sep design-sync capture); the Garage's own
+    note on `paddingRight` says exactly this happens, and that a collision
+    here removes a feature rather than looking untidy.
+  */
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.lg,
+    paddingRight: ACCOUNT_CONTROL_SLOT,
+  },
   headerAction: { minHeight: TARGET_MIN, paddingTop: 6 },
   headerActionLabel: { ...type.monoLabel, color: text.secondary, textTransform: 'uppercase' },
 });

@@ -11,7 +11,10 @@
  * band's trailing slot, as the Garage's "Add car" does, on the Needs segment
  * only. Both halves are pinned: present and wired on Needs, absent on Mods.
  */
+import { StyleSheet } from 'react-native';
 import { render, userEvent } from '@testing-library/react-native';
+
+import { ACCOUNT_CONTROL_SLOT } from '../../navigation/AccountControl';
 
 import { PlanScreen } from '../PlanScreen';
 
@@ -32,6 +35,17 @@ describe('the Plan root', () => {
     expect(add).toBeTruthy();
     await userEvent.setup().press(add);
     expect(onAdd).toHaveBeenCalledTimes(1);
+
+    /*
+      And it leaves room for ACCOUNT. The account control floats over the
+      band's trailing corner from outside the navigator, so a trailing row
+      that does not pad by its slot prints under it — ADD and ACCOUNT drawn
+      on one another, which is how the Plan root shipped on 12 Sep and how
+      the Garage's `+` once disappeared. The Garage pads; this pins that the
+      Plan does too.
+    */
+    const row = add.parent!;
+    expect(StyleSheet.flatten(row.props.style)).toMatchObject({ paddingRight: ACCOUNT_CONTROL_SLOT });
   });
 
   it('offers it without the segment switcher too — a stock car still has needs', async () => {
