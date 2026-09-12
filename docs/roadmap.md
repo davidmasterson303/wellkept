@@ -341,10 +341,13 @@
 > (CLAUDE.md §8), and `hostname-redirects.test.ts` pins the rules, the
 > no-loop property, and that nothing here still names a redirected host.
 >
-> ✅ **David, 12 Sep: "yes, promote the demo redirect when the loop lands"** —
-> so the promote that carries the Service tab loop's merge carries this. It
-> was asked because `crewchief-demo.davidmasterson.co` is the link recruiters
-> hold. Verify after the deploy, not the merge:
+> ✅ **Live, 12 Sep 18:15 UTC.** David said yes; the promote that carried the
+> Service tab loop's merge carried this: `web-live` **8f90ce4f**, `demo-live`
+> **0fedcb2c**. `promote-demo` verified it after the deploy (both old demo
+> hosts `301 → https://tappet-demo.davidmasterson.co/`, destination `200`),
+> and by hand a deep path keeps its path and query
+> (`/privacy?x=1 → …/privacy?x=1`). Cowork verifies from outside as the
+> second pair of eyes. The check by hand, for any later doubt:
 >
 > ```
 > for h in crewchief-demo.davidmasterson.co wellkept-demo.davidmasterson.co; do
@@ -352,16 +355,22 @@
 > ```
 >
 > expects `301 -> https://tappet-demo.davidmasterson.co/` for both, and
-> `tappet-demo.davidmasterson.co` itself still `200`. The **product pair is
-> second**, in its own commit after that reads right: that host takes the
-> app's API writes and a 301 downgrades POST to GET. The check Cowork asked
-> for is done — the only device build ever made (22 Aug, `f7969888`,
+> `tappet-demo.davidmasterson.co` itself still `200`.
+>
+> ⚠ **The product pair is not shipped, and needs David's explicit yes** —
+> `crewchief.davidmasterson.co` and `wellkept.southmoordigital.com` →
+> `tappet.southmoordigital.com`. That host is the App Store listing's URL
+> and the app's API; a 301 downgrades POST to GET. Everything decidable is
+> decided: the only device build ever made (22 Aug, `f7969888`,
 > `co.davidmasterson.crewchief`, profile `device`) is a development client
-> that takes `apiBaseUrl` from Metro's manifest, and the fallback in
-> `apps/mobile/src/config.ts` is `tappet.southmoordigital.com`; nothing
-> installed calls the old product host. The App Store listing still names
-> `crewchief.davidmasterson.co` — Cowork's, and the redirect must not make
-> it look done.
+> that takes `apiBaseUrl` from Metro's manifest, the fallback in
+> `apps/mobile/src/config.ts` is the new host, Expo Go reads the same
+> manifest, no script or workflow posts to the old host, and a redirect
+> preserves path and query so an old magic-link or listing URL still lands.
+> It is two more `[[redirects]]` blocks, the same guard extended to four
+> hosts, and one `promote-web`, which republishes the API. The App Store
+> listing still names `crewchief.davidmasterson.co` — Cowork's, and the
+> redirect must not make it look done.
 >
 > ---
 >
