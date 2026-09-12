@@ -209,7 +209,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       wait without making the call it waits on. See `fixtureHolds`.
     */
     if (fixtureHolds(path)) return new Promise<T>(() => {});
-    const canned = fixtureFor(path);
+    const canned = fixtureFor(path, { method, body });
     if (canned !== undefined) return canned as T;
   }
 

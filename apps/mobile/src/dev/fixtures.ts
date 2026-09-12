@@ -89,9 +89,12 @@ const M235I = {
    * the plate renders its placeholder, which is the honest empty state anyway.
    * Refresh it by signing the object again — it expires.
    */
-  photo_url: process.env.EXPO_PUBLIC_DESIGN_PHOTO_URL ?? null,
-  /* `null` under a photograph, as the route does it — the plate is not showing. */
-  plate_status: process.env.EXPO_PUBLIC_DESIGN_PHOTO_URL ? null : DESIGN_PLATE_STATUS,
+  /*
+    `photo_url` and `plate_status` are not written here: they are read at
+    answer time by `designCar()` below, because a photograph can also arrive
+    through the app's own ADD PHOTO control during a session (12 Sep) and the
+    car has to answer with it from then on.
+  */
   /*
     ── ⚠ 11 Sep · the reading is genuinely stale, not a sentence pretending ──
 
@@ -303,6 +306,59 @@ const SCHEDULE = [
  * Same double gate as everything in this file, read by `api/client.ts` after
  * `fixtureFor` — a held path is held whether or not it has a canned answer.
  */
+/**
+ * ── 12 Sep · a photograph added through the control, kept for the session ──
+ *
+ * Claude Design's most specific request was the vehicle detail with a *real
+ * owner photograph* under the house grade — a frame nobody had shot, because
+ * every captured round showed the plate. `EXPO_PUBLIC_DESIGN_PHOTO_URL` can
+ * put a photograph on the car, but it bypasses the control, and the control
+ * is what the product runs: the action sheet, the picker and its encode at
+ * `VEHICLE_QUALITY`, the upload, the reload. The dev account's password is
+ * stale (400) and the demo's cars refuse writes, so the real route cannot be
+ * driven from a simulator at all.
+ *
+ * So the fixture answers the upload. `POST /upload-photo` is answered with
+ * the picked file's own `uri` — read off React Native's `FormData` parts, the
+ * shape `api/photos.ts` sends — and the car answers with that `uri` as its
+ * `photo_url` from then on; `DELETE` takes it away again. Everything the
+ * product does to the pixels still happens: the encode is the picker's, and
+ * the server stores what it is sent byte for byte (`uploadVehiclePhoto` in
+ * `app/actions.ts` — `Buffer.from(arrayBuffer)`, no resize, no re-encode), so
+ * a frame shot this way is the frame the product would draw. The one thing it
+ * cannot exercise is the network hop, and a capture that leans on this says
+ * so.
+ *
+ * ⚠ Session-scoped on purpose — a reload of the bundle forgets it, the same
+ * way it forgets everything else here. A fixture that persisted a
+ * photograph would be a second place the car's state lives.
+ */
+let addedPhotoUri: string | null = null;
+
+/** The `file` part's `uri` off a React Native `FormData`, or `null`. */
+function filePartUri(body: unknown): string | null {
+  const form = body as { getParts?: () => Array<{ fieldName?: string; uri?: string }> } | undefined;
+  if (typeof form?.getParts !== 'function') return null;
+  const part = form.getParts().find((p) => p.fieldName === 'file' && typeof p.uri === 'string');
+  return part?.uri ?? null;
+}
+
+/** The photograph the fixture car currently answers with, if any. */
+export function designPhotoUrl(): string | null {
+  return addedPhotoUri ?? process.env.EXPO_PUBLIC_DESIGN_PHOTO_URL ?? null;
+}
+
+/** The fixture car as the routes answer it — `photo_url` decided now, not at import. */
+function designCar() {
+  const photo = designPhotoUrl();
+  return {
+    ...M235I,
+    photo_url: photo,
+    /* `null` under a photograph, as the route does it — the plate is not showing. */
+    plate_status: photo ? null : DESIGN_PLATE_STATUS,
+  };
+}
+
 export function fixtureHolds(path: string): boolean {
   const raw = process.env.EXPO_PUBLIC_DESIGN_HOLD;
   if (!raw) return false;
@@ -347,8 +403,23 @@ const DESIGN_EMPTY = new Set(
  * does not cover behaves normally instead of silently rendering as empty. An
  * un-fixtured screen should look broken, not finished.
  */
-export function fixtureFor(path: string): unknown | undefined {
-  if (path.startsWith('/vehicles')) return { vehicles: [M235I] };
+export function fixtureFor(
+  path: string,
+  request: { method?: string; body?: unknown } = {}
+): unknown | undefined {
+  if (path.startsWith('/upload-photo')) {
+    if (request.method === 'DELETE') {
+      addedPhotoUri = null;
+      return { success: true };
+    }
+    const uri = filePartUri(request.body);
+    // Not the shape the app sends: fall through to the network rather than
+    // answer a request this file does not understand.
+    if (!uri) return undefined;
+    addedPhotoUri = uri;
+    return { success: true, photoUrl: uri };
+  }
+  if (path.startsWith('/vehicles')) return { vehicles: [designCar()] };
   if (path.startsWith('/load-vehicle')) {
     /*
       ── 12 Sep · the drivers, computed rather than written ───────────────────
@@ -366,7 +437,7 @@ export function fixtureFor(path: string): unknown | undefined {
     */
     const schedule = DESIGN_EMPTY.has('schedule') ? [] : SCHEDULE;
     return {
-      vehicle: M235I,
+      vehicle: designCar(),
       /*
         ⚠ A top-level sibling of `vehicle`, as the route returns it — the
         screen's own docblock records that reading it off the vehicle is
