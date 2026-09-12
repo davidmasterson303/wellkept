@@ -31,7 +31,7 @@
 > | dossier (dashboard + advisor) | 17 | 8/10, blind-ranked 1st of 4 from 4th | finished — "nine was asked for and not reached", recorded honestly |
 > | vehicle info | 5 | 7/10, plateau | finished, `50942e8` |
 > | logo / identity | 3 | 9→8 on a corrected cap constant, 9 of 9 met | finished, shipped `8938170`; drift §12 |
-> | iOS | 36 | 7/10 screens (peak 8 at rounds 22 and 35), 8 of 9 lines, 9/10 specimen | finished 12 Sep on `Continue: no` — B9 (viewfinder + haptic) **built** in Expo Go, `f80e4ba`, ✅ from round 34; the open line is B6's provenance copy, which is `packages/core`'s; drift §6.16 |
+> | iOS | 36 | 7/10 screens (peak 8 at rounds 22 and 35), **9 of 9 lines**, 9/10 specimen | finished 12 Sep on `Continue: no` — B9 (viewfinder + haptic) **built** in Expo Go, `f80e4ba`, ✅ from round 34; B6's token closed from the main tree after the stop (`317e4a4`, measured, not re-judged); drift §6.16 |
 > | signed-in web (`/garage` `/settings` `/onboard`) | 4 | 8/10, 9 of 10 lines, garage blind-ranked 1st of 6 | finished 11 Sep on `Continue: no` — judged via `/dev/*` fixture routes, `1b8e6bc`; drift §13 |
 >
 > Then 8 Sep was a different critique — an **IA review**, not a visual one — which
@@ -419,11 +419,11 @@
 >
 > **David's, from these lanes:** the locked brief's B1 still says "No serif
 > except the WK mark" (frozen 6 Sep, a day before the rename) — only David
-> edits `design-loop/mobile-ios/brief.md`; B6's short provenance tokens
-> (`SERVICE_BASIS_SHORT` beside `SERVICE_BASIS_LABELS` in `packages/core`,
-> drift §6.16) — the one 🟡 left on the Service tab; and the first App Store
-> upload should be watched for ITMS-90683, since `expo-camera` is in without
-> `NSMicrophoneUsageDescription` (picture mode never touches audio).
+> edits `design-loop/mobile-ios/brief.md`; and the first App Store upload
+> should be watched for ITMS-90683, since `expo-camera` is in without
+> `NSMicrophoneUsageDescription` (picture mode never touches audio). B6's
+> tokens were not David's after all — core is editable from the main tree —
+> and closed at `317e4a4`: every Service checklist line is ✅, measured.
 >
 > #### 12 Sep, evening — the store adapter is built against the mocked module; nothing has been bought
 >
